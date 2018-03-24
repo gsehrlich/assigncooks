@@ -7,6 +7,11 @@ from numpy.random import randint
 class Schedule(object):
 	balance = None
 	maximal_assignment = None
+	maximal_positions = None
+	current_assignment = None
+	cooks = None
+	dates = None
+	cook_base = None
 	
 	@classmethod
 	def load_cooking_balance(cls):
@@ -58,6 +63,42 @@ class Schedule(object):
 			date: [cook for cook in cooks if date in availbility_dict[cook]]
 			for date in dates
 			}
+
+    @classmethod
+    def calculate_maximal_positions(self):
+        """
+        Will calculate and set `maximal_positions` to the set of tuples of maximal positions.
+        A maximal position is one which has a cook with maximal "aheadness" and a date with maximal "cooks".
+        """
+
+        cur_max = 0
+        max_dates = []
+        for date in dates:
+            cur_len = len(current_assignment[date])
+            if cur_len > cur_max:
+                current_max = cur_len
+                max_dates = [ date ]
+            if cur_len == cur_max:
+                max_dates.append(date)
+
+        cur_max = 0
+        max_cooks = []
+        for cook in cooks:
+            cur_cook = self.cook_base[cook]
+            for date in dates:
+                if cook in self.current_assignment[date]:
+                    cur_cook += 1
+            if cur_cook > cur_max:
+                cur_max = cur_cook
+                max_cooks = [ cur_cook ]
+            if cur_cook == cur_max:
+                max_cooks.append(date)
+
+        self.maximal_positions = []
+        for date in max_dates:
+            for cook in max_cooks:
+                if cook in self.current_assignment[date]:
+                    self.maximal_positions.append((date, cook))
 
 	@classmethod
 	def create_assignment(cls):
