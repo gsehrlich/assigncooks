@@ -5,7 +5,7 @@ import numpy as np
 from numpy.random import randint
 
 class Schedule(object):
-	cooking_balance = None
+	balance = None
 	maximal_assignment = None
 	
 	@classmethod
@@ -14,7 +14,19 @@ class Schedule(object):
 		Get cooks' cooking balances from a file or online and store
 		them.
 		"""
-		cls.cooking_balance = NotImplemented
+		# TODO: IMPLEMENT CORRECTLY
+		cls.load_sample_cooking_balance()
+
+	# TEMPORARY
+	@classmethod
+	def load_sample_cooking_balance(cls):
+		"""
+		Get cooks' cooking balances from a made-up file and store them.
+		"""
+		cls.cooks, balance = np.loadtxt("sample_balance.txt", delimiter="\t",
+									dtype=str, unpack=True)
+		cls.balance = {cls.cooks[i]: float(balance[i])
+						for i in xrange(len(cls.cooks))}
 
 	@classmethod
 	def create_maximal_assignment(cls):
@@ -22,8 +34,30 @@ class Schedule(object):
 		Get cooks' availabilities from a file or online. Store a
 		schedule specifying which cooks are available on each day.
 		"""
-		# do some stuff
-		cls.maximal_assignment = NotImplemented
+		# TODO: IMPLEMENT CORRECTLY
+		cls.create_sample_cooking_balalnce()
+
+	@classmethod
+	def create_sample_cooking_balalnce(cls):
+		"""
+		Get cooks' availabilities from a made-up file. Store a schedule
+		specifying which cooks are available on each day.
+		"""
+		filename = "sample_availability.txt"
+
+		# Use the first line to get the calendar
+		with open(filename) as f:
+			dates = f.readline().strip("\n#").split("\t")
+			dates = dates[1:]	# Get rid of the cook column
+
+		availability_arr = np.loadtxt(filename, delimiter="\t", dtype=str)
+		availability_dict = {availability_arr[0, i]: availability_arr[1:, i]
+								for i in xrange(len(availability_arr))}
+
+		cls.maximal_assignment = {
+			date: [cook for cook in cooks if date in availbility_dict[cook]]
+			for date in dates
+			}
 
 	@classmethod
 	def create_assignment(cls):
@@ -31,9 +65,32 @@ class Schedule(object):
 		Starting with the maximal assignment, remove cooks until there
 		are two cooks per day. Return the result.
 		"""
-		assignment = NotImplemented
-		raise NotImplementedError()
-		return assignment
+		# count how many times each cook appears
+		score = {cook: sum(
+			[1 if cook in cls.maximal_assignment[date] else 0
+			for date in cls.maximal_assignment])
+			for cook in cooks}
+
+		# count how many more times each cook appears than their balance
+		for cook in cooks:
+			score[cook] -= balance[cook]
+
+		# randomly remove cooks whose score is the highest one by one,
+		# updating the score, until there are two cooks per slot
+		assignment = dict([cls.maximal_assignment])
+		dates_with_too_many_cooks = Schedule.dates_with_too_many_cooks(
+			assignment)
+		while dates_with_too_many_cooks:
+			raise NotImplementedError()
+
+
+	@staticmethod
+	def dates_with_too_many_cooks(assignment):
+		dates = []
+		for cook in cooks:
+			if len(assignment[cook]) >= 2:
+				dates.append(assignment[cook])
+		return dates
 
 	def objective(self):
 		"""

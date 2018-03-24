@@ -1,0 +1,4 @@
+Person A	4
+Person B	4
+Person C	5
+Person D	3

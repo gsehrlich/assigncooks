@@ -1,0 +1,5 @@
+# Cook	1	2	3	4	8	9	10	11
+Person A	1	0	1	0	1	1	1	1
+Person B	1	1	1	1	1	0	1	0
+Person C	0	1	0	1	1	1	1	1
+Person D	1	1	1	0	1	1	0	0
