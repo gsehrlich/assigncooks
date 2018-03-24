@@ -3,6 +3,7 @@
 import sys, os
 import numpy as np
 from numpy.random import randint
+import random
 
 class Schedule(object):
 	balance = None
@@ -99,6 +100,26 @@ class Schedule(object):
             for cook in max_cooks:
                 if cook in self.current_assignment[date]:
                     self.maximal_positions.append((date, cook))
+
+    @classmethod
+    def remove_maximal_position(self):
+        """
+        This function will calculate a maximal position and remove an element from the current assignment from the maximal assignment.
+        It will update the current maximal positions as well.
+        """
+
+        if self.maximal_positions is None or self.maximal_positions == []:
+            self.calculate_maximal_positions()
+
+        (date, cook) = random.choice(self.maximal_positions)
+        self.current_assignment[date].remove(cook)
+
+        for (d, c) in self.maximal_positions:
+            if cook == c:
+                self.maximal_positions.remove((d, c))
+
+        if self.maximal_positions is None or self.maximal_positions == []:
+            self.calculate_maximal_positions()
 
 	@classmethod
 	def create_assignment(cls):
