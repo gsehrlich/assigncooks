@@ -80,15 +80,15 @@ class Schedule(object):
 		assignment = dict([cls.maximal_assignment])
 		dates_with_too_many_cooks = Schedule.dates_with_too_many_cooks(
 			assignment)
+		raise NotImplementedError()
 		while dates_with_too_many_cooks:
-			raise NotImplementedError()
-
+			pass
 
 	@staticmethod
 	def dates_with_too_many_cooks(assignment):
 		dates = []
 		for cook in cooks:
-			if len(assignment[cook]) >= 2:
+			if len(assignment[cook]) > 2:
 				dates.append(assignment[cook])
 		return dates
 
