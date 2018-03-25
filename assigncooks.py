@@ -70,6 +70,7 @@ class Schedule(object):
         """
         self.calc_max_cooks()
         self.calc_max_dates()
+        self.calc_removable_placements()
         self.calc_max_placements()
 
     def calc_max_dates(self):
@@ -105,6 +106,20 @@ class Schedule(object):
                 self.max_cooks = [cook]
             elif c == max_cookings:
                 self.max_cooks.append(cook)
+
+    def calc_removable_placements(self):
+        """
+        Generate the list of placements (i.e. (cook, date) pairs) that
+        can be removed from the current schedule.
+        """
+        dates_with_too_many_cooks = [
+            date for date in self.dates
+            if len(self.schedule(date)) > 2
+            ]
+        self.removable_placements = [
+            (cook, date) for date in dates_with_too_many_cooks
+            for cook in self.schedule[date]
+            ]
 
     def calc_max_placements(self):
         """
@@ -142,9 +157,6 @@ class Schedule(object):
         """
         self.schedule = dict(self.maximal_schedule)
 
-        scores = self.get_scores()
-        self.calc_removable_placements()
-
         # remove cooks one by one according to a heuristic until the
         # schedule has two cooks on every date
         while self.overscheduled() and self.remove_heuristic():
@@ -169,22 +181,8 @@ class Schedule(object):
 
         date, cook = placement_to_remove
         if len(self.schedule[date]) <= 2:
-            self.calc_random_removable_placements()
+            self.calc_removable_placements()
         return True
-
-    def calc_random_removable_placements(self):
-        """
-        Generate the list of placements (i.e. (cook, date) pairs) that
-        can be removed from the current schedule.
-        """
-        dates_with_too_many_cooks = [
-            date for date in self.dates
-            if len(self.schedule(date)) > 2
-            ]
-        self.removable_placements = [
-            (cook, date) for date in dates_with_too_many_cooks
-            for cook in self.schedule[date]
-            ]
 
     def remove_maximal_placement(self):
         """
