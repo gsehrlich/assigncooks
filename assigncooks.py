@@ -95,7 +95,7 @@ class Schedule(object):
         max_cookings = 0
 
         for cook in self.cooks:
-            c = 0
+            c = self.cooking_balance[cook]
             for date in self.dates:
                 if cook in self.schedule[date]:
                     c += 1
