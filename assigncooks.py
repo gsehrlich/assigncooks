@@ -9,7 +9,7 @@ class Schedule(object):
 	maximal_schedule = None
 	cooks = None
 	dates = None
-	
+
 	@classmethod
 	def load_cooking_balance(cls):
 		"""
@@ -71,6 +71,22 @@ class Schedule(object):
 					if date in availability_dict[cook]]
 			for date in cls.dates
 			}
+
+    def calc_max_dates(self):
+        """
+        Will calculate the dates which have the maximum number of cooks assigned to them.
+        """
+
+        self.max_dates = []
+        # TREYDO: FINISH
+
+    def calc_max_cooks(self):
+        """
+        Will calculate the cooks which have the maximum number of dates they're assigned on.
+        """
+
+        self.max_dates = []
+        # TREYDO: FINISH
 
 	def create_schedule(self):
 		"""
