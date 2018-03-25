@@ -12,6 +12,8 @@ class Schedule(object):
 	current_assignment = None
 	cooks = None
 	dates = None
+	max_cooks = None
+	max_dates = None
 	cook_base = None
 	
 	@classmethod
@@ -65,7 +67,22 @@ class Schedule(object):
 			for date in dates
 			}
 
-    @classmethod
+    def calc_max_dates(self):
+        """
+        Will calculate the dates which have the maximum number of cooks assigned to them.
+        """
+
+        self.max_dates = []
+        # TREYDO: FINISH
+
+    def calc_max_cooks(self):
+        """
+        Will calculate the cooks which have the maximum number of dates they're assigned on.
+        """
+
+        self.max_dates = []
+        # TREYDO: FINISH
+
     def calculate_maximal_positions(self):
         """
         Will calculate and set `maximal_positions` to the set of tuples of maximal positions.
@@ -73,27 +90,27 @@ class Schedule(object):
         """
 
         cur_max = 0
-        max_dates = []
-        for date in dates:
-            cur_len = len(current_assignment[date])
-            if cur_len > cur_max:
-                current_max = cur_len
-                max_dates = [ date ]
-            if cur_len == cur_max:
-                max_dates.append(date)
-
-        cur_max = 0
         max_cooks = []
-        for cook in cooks:
+        for cook in self.cooks:
             cur_cook = self.cook_base[cook]
-            for date in dates:
+            for date in self.dates:
                 if cook in self.current_assignment[date]:
                     cur_cook += 1
             if cur_cook > cur_max:
                 cur_max = cur_cook
                 max_cooks = [ cur_cook ]
-            if cur_cook == cur_max:
+            elif cur_cook == cur_max:
                 max_cooks.append(date)
+
+        cur_max = 0
+        max_dates = []
+        for date in self.dates:
+            cur_len = len(self.current_assignment[date])
+            if cur_len > cur_max:
+                cur_max = cur_len
+                max_dates = [ date ]
+            elif cur_len == cur_max:
+                max_dates.append(date)
 
         self.maximal_positions = []
         for date in max_dates:
