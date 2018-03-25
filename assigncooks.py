@@ -167,7 +167,7 @@ class Schedule(object):
         """
         Wrapper for specifying which heuristic to use for calculating and performing removals.
         """
-        return self.remove_random_placement()
+        return self.remove_maximal_placement()
 
     def remove_random_placement(self):
         """
@@ -189,11 +189,13 @@ class Schedule(object):
         """
         Heuristic which tries to remove a "maximal" placement in terms of cooks which have too many cookings and dates with too many cooks.
         """
-        if self.max_placements is None or self.max_placements == []:
-            self.calc_max_placements
-        if self.max_placements == []:
-            return self.random_removable_placement()
-        self.remove_placement(random.choice(self.max_placements))
+        if len(self.max_placements) == 0:
+            self.calc_max_placements()
+        if len(self.max_placements) == 0:
+            return self.remove_random_placement()
+        placement_to_remove = random.choice(self.max_placements)
+        self.remove_placement(placement_to_remove)
+        self.max_placements.remove(placement_to_remove)
         return True
 
     def get_score(self):
