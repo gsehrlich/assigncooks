@@ -119,12 +119,21 @@ class Schedule(object):
             if cook in self.schedule[date]
         ]
 
-    def remove_placement(placement_to_remove):
+    def remove_placement(self, placement_to_remove):
         """
         Remove the provided placement from self.schedule.
         """
         cook, date = placement_to_remove
         self.schedule[date].remove[cook]
+
+    def overscheduled(self):
+        """
+        Calculates if any days are overscheduled or not.
+        """
+        for date in self.dates:
+            if len(self.schedule[date]) > 2:
+                return True
+        return False
 
     def create_schedule(self):
         """
@@ -138,7 +147,7 @@ class Schedule(object):
 
         # remove cooks one by one according to a heuristic until the
         # schedule has two cooks on every date
-        while self.remove_heuristic():
+        while self.overscheduled() and self.remove_heuristic():
             continue
 
     def remove_heuristic(self):
