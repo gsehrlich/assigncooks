@@ -1,14 +1,35 @@
-#!usr/bin/env python27
+#!/usr/bin/env python3
 
 import sys, os
+import csv
 import numpy as np
 import random
 
+def grabcsv(fname):
+    if not os.path.exists(fname):
+        print("File doesn't exist: " + fname)
+        exit(1)
+
+    with open(fname, 'r') as f:
+        csv_reader = csv.reader(f)
+        for row in csv_reader:
+            print(row)
+
 class Schedule(object):
-    balance = None
+    balance = { '04f' : 0 , '310' : 0 , '3e0' : 0 , '4a2' : 0 , '721' : -1 , '889' : -1 , '94e' : -2 , '9e8' : -1 , 'e24' : -2 , 'ec7' : -1 , 'f3c' : 0 }
     maximal_schedule = None
-    cooks = None
-    dates = None
+    cooks = [ '04f' , '310' , '3e0' , '4a2' , '721' , '889' , '94e' , '9e8' , 'e24' , 'ec7' , 'f3c' ]
+    dates = [ i for i in range(1,22) ]
+
+    @classmethod
+    def load_month(cls, date):
+        """
+        Loads the data files `data/date_balance.csv` and `data/date_poll.csv` into the class variables.
+        """
+        balance_file = "data/" + date + "_balance.csv"
+        poll_file    = "data/" + date + "_poll.csv"
+        grabcsv(balance_file)
+        grabcsv(poll_file)
 
     @classmethod
     def load_cooking_balance(cls):
@@ -73,38 +94,38 @@ class Schedule(object):
             }
 
     def calc_max_dates(self):
-    """
-    Will calculate the dates which have the maximum number of cooks assigned to them.
-    """
+        """
+        Will calculate the dates which have the maximum number of cooks assigned to them.
+        """
 
-    self.max_dates = []
-    max_peeps = 0
-    for date in self.dates:
-        cur_peeps = len(self.current_assignment[date])
-        if cur_peeps > max_peeps:
-            self.max_dates = [date]
-            max_peeps = cur_peeps
-        elif max_peeps == cur_peeps:
-            self.max_dates.append(date)
+        self.max_dates = []
+        max_peeps = 0
+        for date in self.dates:
+            cur_peeps = len(self.current_assignment[date])
+            if cur_peeps > max_peeps:
+                self.max_dates = [date]
+                max_peeps = cur_peeps
+            elif max_peeps == cur_peeps:
+                self.max_dates.append(date)
 
     def calc_max_cooks(self):
-    """
-    Will calculate the cooks which have the maximum number of dates they're assigned on.
-    """
+        """
+        Will calculate the cooks which have the maximum number of dates they're assigned on.
+        """
 
-    self.max_cooks = []
-    max_cookings = 0
+        self.max_cooks = []
+        max_cookings = 0
 
-    for cook in self.cooks:
-        c = 0
-        for date in self.dates:
-            if cook in self.current_assignment[date]:
-                c += 1
-        if c > max_cookings:
-            max_cookings = c
-            self.max_cooks = [cook]
-        elif c == max_cookings:
-            self.max_cooks.append(cook)
+        for cook in self.cooks:
+            c = 0
+            for date in self.dates:
+                if cook in self.current_assignment[date]:
+                    c += 1
+            if c > max_cookings:
+                max_cookings = c
+                self.max_cooks = [cook]
+            elif c == max_cookings:
+                self.max_cooks.append(cook)
 
     def create_schedule(self):
         """
@@ -240,6 +261,15 @@ class Schedule(object):
         with open(filename, "w") as f:
             f.write(str(self))
 
+def usage():
+    """
+    Print the usage of the file."
+    """
+    print("Usage: " + sys.argv[0] + " <date>")
+    print()
+    print("    where <date> is the date in `data/...` you want to build a schedule for.")
+    sys.exit(1)
+
 def main():
     """
     Create the list of possible schedules, then evolve the list until
@@ -247,42 +277,11 @@ def main():
     directory given either by the first command-line argument or during
     execution.
     """
-    # check ommand-line arguments
     if len(sys.argv) == 2:
-        dirname = sys.argv[1]
-    if len(sys.argv) == 3:
-        dirname = sys.argv[1]
-        seed = int(sys.argv[2])
-    # if none provided, ask for dirname at beginning of execution
-    elif len(sys.argv) < 2:
-        dirname = raw_input("Directory name for output schedules? ")
-    # if too many arguments are created, display a help message
+        date = sys.argv[1]
     else:
-        print "Usage: 'python assigncooks.py output_directory_name"
-
-    # For platform independence, don't allow creation of the directory
-    # if it has the same name as an existing file.
-    if os.path.exists(dirname):
-        print("A file or directory exists with the same name. Please "
-            "choose a different name.")
-        sys.exit(1)
-    else:
-        os.mkdir(dirname)
-
-    schedules = []
-    good_enough_schedules = None
-    while good_enough_schedules is None:
-        raise NotImplementedError()
-        good_enough_schedules = good_enough(schedules)
-
-    # save to file
-    i = 0
-    for schedule, score in good_enough_schedules():
-        schedule.save_to_file(os.path.join(
-            dirname, "schedule%02d_score_%d" % (i, score)))
-        i += 1
-
-    print "Schedules saved to directory '%s'" % dirname
+        usage()
+    schedule = Schedule.load_month(date)
 
 def evolve():
     """
@@ -303,4 +302,5 @@ def good_enough(schedules):
     raise NotImplementedError()
     return False
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    main()
