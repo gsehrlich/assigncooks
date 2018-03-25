@@ -109,17 +109,17 @@ class Schedule(object):
 
     def calc_removable_placements(self):
         """
-        Generate the list of placements (i.e. (cook, date) pairs) that
+        Generate the list of placements (i.e. (date, cook) pairs) that
         can be removed from the current schedule.
         """
         dates_with_too_many_cooks = [
             date for date in self.dates
-            if len(self.schedule(date)) > 2
+            if len(self.schedule[date]) > 2
             ]
-        self.removable_placements = [
-            (cook, date) for date in dates_with_too_many_cooks
+        self.removable_placements = list(set([
+            (date, cook) for date in dates_with_too_many_cooks
             for cook in self.schedule[date]
-            ]
+            ]))
 
     def calc_max_placements(self):
         """
@@ -138,8 +138,9 @@ class Schedule(object):
         """
         Remove the provided placement from self.schedule.
         """
-        cook, date = placement_to_remove
-        self.schedule[date].remove[cook]
+        date, cook = placement_to_remove
+        self.removable_placements.remove(placement_to_remove)
+        self.schedule[date].remove(cook)
 
     def overscheduled(self):
         """
@@ -166,9 +167,9 @@ class Schedule(object):
         """
         Wrapper for specifying which heuristic to use for calculating and performing removals.
         """
-        return self.random_removable_placement()
+        return self.remove_random_placement()
 
-    def random_removable_placement(self):
+    def remove_random_placement(self):
         """
         The easiest heuristic. Randomly choose a placement to remove
         and return it.
@@ -274,10 +275,8 @@ def main():
     schedule = Schedule.load_month(date)
     schedule.calc_max_dates()
     schedule.calc_max_cooks()
-    print(schedule.max_cooks)
-    print(schedule.max_dates)
+    schedule.create_schedule()
     print(schedule.schedule)
-    print(schedule.max_placements)
 
 def evolve():
     """
