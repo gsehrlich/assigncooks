@@ -45,7 +45,7 @@ class Schedule(object):
 
         cls.maximal_schedule = {
             date : [cook for cook in cls.cooks
-                         if cook in raw_poll and raw_poll[cook][date] == 'OK'
+                         if (not cook in raw_poll) or raw_poll[cook][date] == 'OK'
                    ]
             for date in cls.dates
         }
