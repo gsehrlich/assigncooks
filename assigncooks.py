@@ -80,9 +80,21 @@ class Schedule(object):
 		assignment = dict([cls.maximal_assignment])
 		dates_with_too_many_cooks = Schedule.dates_with_too_many_cooks(
 			assignment)
-		raise NotImplementedError()
 		while dates_with_too_many_cooks:
-			pass
+			most_ahead_amount = max(score.values())
+			most_ahead_cooks = [cook for cook in cooks
+								if score[cook] == most_ahead_amount]
+			cook_to_remove = most_ahead_cooks[randint(len(most_ahead_cooks))]
+
+			dates_where_cook_assigned = [
+				date for date in dates_with_too_many_cooks
+				if cook_to_remove in assignment[date]
+				]
+			date_to_remove_from = dates_where_cook_assigned[randint(
+				len(dates_where_cook_assigned))]
+			assignment[date_to_remove_from].remove(cook_to_remove)
+
+		return assignment
 
 	@staticmethod
 	def dates_with_too_many_cooks(assignment):
