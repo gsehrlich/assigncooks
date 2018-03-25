@@ -105,6 +105,13 @@ class Schedule(object):
             elif c == max_cookings:
                 self.max_cooks.append(cook)
 
+    def remove_placement(placement_to_remove):
+        """
+        Remove the provided placement from self.schedule.
+        """
+        cook, date = placement_to_remove
+        self.schedule[date].remove[cook]
+
     def create_schedule(self):
         """
         Starting with the maximal schedule, remove cooks until there
@@ -142,12 +149,19 @@ class Schedule(object):
             self.calc_random_removable_placements()
         return True
 
-    def remove_placement(placement_to_remove):
+    def calc_random_removable_placements(self):
         """
-        Remove the provided placement from self.schedule.
+        Generate the list of placements (i.e. (cook, date) pairs) that
+        can be removed from the current schedule.
         """
-        cook, date = placement_to_remove
-        self.schedule[date].remove[cook]
+        dates_with_too_many_cooks = [
+            date for date in self.dates
+            if len(self.schedule(date)) > 2
+            ]
+        self.removable_placements = [
+            (cook, date) for date in dates_with_too_many_cooks
+            for cook in self.schedule[date]
+            ]
 
     def get_score(self):
         """
@@ -163,20 +177,6 @@ class Schedule(object):
             scores[cook] = times_on_schedule - balance[cook]
 
         return scores
-
-    def calc_random_removable_placements(self):
-        """
-        Generate the list of placements (i.e. (cook, date) pairs) that
-        can be removed from the current schedule.
-        """
-        dates_with_too_many_cooks = [
-            date for date in self.dates
-            if len(self.schedule(date)) > 2
-            ]
-        self.removable_placements = [
-            (cook, date) for date in dates_with_too_many_cooks
-            for cook in self.schedule[date]
-            ]
 
     def objective(self):
         """
