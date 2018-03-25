@@ -73,12 +73,19 @@ class Schedule(object):
 			}
 
     def calc_max_dates(self):
-        """
-        Will calculate the dates which have the maximum number of cooks assigned to them.
-        """
+	"""
+	Will calculate the dates which have the maximum number of cooks assigned to them.
+	"""
 
-        self.max_dates = []
-        # TREYDO: FINISH
+	self.max_dates = []
+	max_peeps = 0
+	for date in self.dates:
+		cur_peeps = len(self.current_assignment[date])
+		if cur_peeps > max_peeps:
+			self.max_dates = [date]
+			max_peeps = cur_peeps
+		elif max_peeps == cur_peeps:
+			self.max_dates.append(date)
 
     def calc_max_cooks(self):
         """
