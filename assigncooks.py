@@ -114,32 +114,34 @@ class Schedule(object):
         self.schedule = dict(self.maximal_schedule)
 
         scores = self.get_scores()
-        removable_placements = self.get_removable_placements()
+        self.calc_removable_placements()
 
         # remove cooks one by one according to a heuristic until the
         # schedule has two cooks on every date
-        while removable_placements:
-            # CALL HERUISTIC BELOW
-            # should be a class function of removable_placements and
-            # optionally scores (doesn't modify anything)
-            placement_to_remove = self.random_removable_placement(
-                removable_placements)
+        while self.remove_heuristic():
+            continue
 
-            # remove it from self.schedule
-            self.remove_placement(placement_to_remove)
+    def remove_heuristic(self):
+        """
+        Wrapper for specifying which heuristic to use for calculating and performing removals.
+        """
+        return self.random_removable_placement()
 
-            # recalculate scores and removable placements
-            cook = placement_to_remove[0]
-            score[cook] -= 1
-            removable_placements.remove(placement_to_remove)
-
-    @classfunction
-    def random_removable_placement(cls, removable_placements):
+    def random_removable_placement(self):
         """
         The easiest heuristic. Randomly choose a placement to remove
         and return it.
         """
-        return random.choice(removable_placements)
+
+        if len(self.removable_placements) == 0:
+            return False
+        placement_to_remove = random.choice(self.removable_placements)
+        self.remove_placement(placement_to_remove)
+
+        date, cook = placement_to_remove
+        if len(self.schedule[date]) <= 2:
+            self.calc_random_removable_placements()
+        return True
 
     def remove_placement(placement_to_remove):
         """
@@ -155,15 +157,15 @@ class Schedule(object):
         """
         scores = {}
         for cook in self.cooks:
-            times_on_schedule = sum(
-                [1 for date in self.dates
+            times_on_schedule = len(
+                [date for date in self.dates
                 if cook in self.schedule[date]]
                 )
             scores[cook] = times_on_schedule - balance[cook]
 
         return scores
 
-    def get_removable_placements(self):
+    def calc_random_removable_placements(self):
         """
         Generate the list of placements (i.e. (cook, date) pairs) that
         can be removed from the current schedule.
@@ -172,11 +174,10 @@ class Schedule(object):
             date for date in self.dates
             if len(self.schedule(date)) > 2
             ]
-        removable_placements = [
+        self.removable_placements = [
             (cook, date) for date in dates_with_too_many_cooks
             for cook in self.schedule[date]
             ]
-        return removable_placements
 
     def objective(self):
         """
