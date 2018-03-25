@@ -2,11 +2,13 @@
 
 import sys, os
 import numpy as np
-from numpy.random import randint
+import random
 
 class Schedule(object):
 	balance = None
-	maximal_assignment = None
+	maximal_schedule = None
+	cooks = None
+	dates = None
 	
 	@classmethod
 	def load_cooking_balance(cls):
@@ -22,6 +24,7 @@ class Schedule(object):
 	def load_sample_cooking_balance(cls):
 		"""
 		Get cooks' cooking balances from a made-up file and store them.
+		Also store the list of cooks.
 		"""
 		cls.cooks, balance = np.loadtxt("sample_balance.txt", delimiter="\t",
 									dtype=str, unpack=True)
@@ -29,7 +32,7 @@ class Schedule(object):
 						for i in xrange(len(cls.cooks))}
 
 	@classmethod
-	def create_maximal_assignment(cls):
+	def create_maximal_schedule(cls):
 		"""
 		Get cooks' availabilities from a file or online. Store a
 		schedule specifying which cooks are available on each day.
@@ -38,75 +41,112 @@ class Schedule(object):
 		cls.create_sample_cooking_balalnce()
 
 	@classmethod
-	def create_sample_cooking_balalnce(cls):
+	def create_sample_cooking_balance(cls):
 		"""
 		Get cooks' availabilities from a made-up file. Store a schedule
-		specifying which cooks are available on each day.
+		specifying which cooks are available on each day. Also store the
+		list of dates.
 		"""
 		filename = "sample_availability.txt"
 
 		# Use the first line to get the calendar
 		with open(filename) as f:
 			dates = f.readline().strip("\n#").split("\t")
-			dates = dates[1:]	# Get rid of the cook column
+			cls.dates = dates[1:]	# Get rid of the cook column
 
 		availability_arr = np.loadtxt(filename, delimiter="\t", dtype=str)
 		availability_dict = {availability_arr[0, i]: availability_arr[1:, i]
 								for i in xrange(len(availability_arr))}
 
-		cls.maximal_assignment = {
-			date: [cook for cook in cooks if date in availbility_dict[cook]]
-			for date in dates
+		# TODO: figure out what to do if a cook isn't in the poll. This
+		# defaults to giving them no availability.
+
+		# TODO: figure out what to do if a cook's name is spelled dif-
+		# ferently on the poll than on the balance sheet. Currently this
+		# will throw a KeyError if the cook's balance-sheet name isn't
+		# on the poll.
+
+		cls.maximal_schedule = {
+			date: [cook for cook in cls.cooks
+					if date in availability_dict[cook]]
+			for date in cls.dates
 			}
 
-	@classmethod
-	def create_assignment(cls):
+	def create_schedule(self):
 		"""
-		Starting with the maximal assignment, remove cooks until there
+		Starting with the maximal schedule, remove cooks until there
 		are two cooks per day. Return the result.
 		"""
-		# count how many times each cook appears
-		score = {cook: sum(
-			[1 if cook in cls.maximal_assignment[date] else 0
-			for date in cls.maximal_assignment])
-			for cook in cooks}
+		self.schedule = dict(self.maximal_schedule)
+		
+		scores = self.get_scores()
+		removable_placements = self.get_removable_placements()
 
-		# count how many more times each cook appears than their balance
-		for cook in cooks:
-			score[cook] -= balance[cook]
+		# remove cooks one by one according to a heuristic until the
+		# schedule has two cooks on every date
+		while removable_placements:
+			# CALL HERUISTIC BELOW
+			# should be a class function of removable_placements and
+			# optionally scores (doesn't modify anything)
+			placement_to_remove = self.random_removable_placement(
+				removable_placements)
 
-		# randomly remove cooks whose score is the highest one by one,
-		# updating the score, until there are two cooks per slot
-		assignment = dict([cls.maximal_assignment])
-		dates_with_too_many_cooks = Schedule.dates_with_too_many_cooks(
-			assignment)
-		while dates_with_too_many_cooks:
-			most_ahead_amount = max(score.values())
-			most_ahead_cooks = [cook for cook in cooks
-								if score[cook] == most_ahead_amount]
-			cook_to_remove = most_ahead_cooks[randint(len(most_ahead_cooks))]
+			# remove it from self.schedule
+			self.remove_placement(placement_to_remove)
 
-			dates_where_cook_assigned = [
-				date for date in dates_with_too_many_cooks
-				if cook_to_remove in assignment[date]
-				]
-			date_to_remove_from = dates_where_cook_assigned[randint(
-				len(dates_where_cook_assigned))]
-			assignment[date_to_remove_from].remove(cook_to_remove)
+			# recalculate scores and removable placements
+			cook = placement_to_remove[0]
+			score[cook] -= 1
+			removable_placements.remove(placement_to_remove)
 
-		return assignment
+	@classfunction
+	def random_removable_placement(cls, removable_placements):
+		"""
+		The easiest heuristic. Randomly choose a placement to remove
+		and return it.
+		"""
+		return random.choice(removable_placements)
 
-	@staticmethod
-	def dates_with_too_many_cooks(assignment):
-		dates = []
-		for cook in cooks:
-			if len(assignment[cook]) > 2:
-				dates.append(assignment[cook])
-		return dates
+	def remove_placement(placement_to_remove):
+		"""
+		Remove the provided placement from self.schedule.
+		"""
+		cook, date = placement_to_remove
+		self.schedule[date].remove[cook]
+
+	def get_score(self):
+		"""
+		Count how many times more times each cook appears on the
+		schedule than they're supposed to (based on their balance).
+		"""
+		scores = {}
+		for cook in self.cooks:
+			times_on_schedule = sum(
+				[1 for date in self.dates
+				if cook in self.schedule[date]]
+				)
+			scores[cook] = times_on_schedule - balance[cook]
+
+		return scores
+
+	def get_removable_placements(self):
+		"""
+		Generate the list of placements (i.e. (cook, date) pairs) that
+		can be removed from the current schedule.
+		"""
+		dates_with_too_many_cooks = [
+			date for date in self.dates
+			if len(self.schedule(date)) > 2
+			]
+		removable_placements = [
+			(cook, date) for date in dates_with_too_many_cooks
+			for cook in self.schedule[date]
+			]
+		return removable_placements
 
 	def objective(self):
 		"""
-		Calculate how good the current assignment is. Return the
+		Calculate how good the current schedule is. Return the
 		result.
 		"""
 		raise NotImplementedError()
@@ -115,18 +155,18 @@ class Schedule(object):
 		"""
 		Create a schedule based on `base_schedule` with changes given
 		by `changes`. If `base_schedule` is not given, cooks are
-		randomly removed from the maximal assignment to create the
+		randomly removed from the maximal schedule to create the
 		schedule.
 		"""
 		if self.cooking_balance is None:
-			Schedule.load_cooking_balance()
-		if self.maximal_assignment is None:
-			Schedule.create_maximal_assignment()
+			self.load_cooking_balance()
+		if self.maximal_schedule is None:
+			self.create_maximal_schedule()
 
 		if base_schedule is None:
-			self.assignment = Schedule.create_assignment()
+			self.create_schedule()
 		else:
-			self.assignment = base_schedule.assignment
+			self.schedule = base_schedule.schedule
 			for change in changes:
 				# make the changes
 				raise NotImplementedError()
@@ -152,7 +192,7 @@ class Schedule(object):
 
 	def __str__(self):
 		"""
-		Print the assignment nicely.
+		Print the schedule nicely.
 		"""
 		raise NotImpementedError()
 		return ""
@@ -167,7 +207,7 @@ class Schedule(object):
 
 def main():
 	"""
-	Create the list of possible assignments, then evolve the list until
+	Create the list of possible schedules, then evolve the list until
 	some of them are good enough. Save the result in an output
 	directory given either by the first command-line argument or during
 	execution.
@@ -211,8 +251,8 @@ def main():
 
 def evolve():
 	"""
-	Attempt to create a better assignment than those in the assignments
-	list. Choose an assignment to evolve, then randomly evolve it, then
+	Attempt to create a better schedule than those in the schedule
+	list. Choose an schedule to evolve, then randomly evolve it, then
 	check whether it's an improvement. If it is, return it; else return
 	None.
 	"""
