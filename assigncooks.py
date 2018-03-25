@@ -70,6 +70,7 @@ class Schedule(object):
         """
         self.calc_max_cooks()
         self.calc_max_dates()
+        self.calc_max_placements()
 
     def calc_max_dates(self):
         """
@@ -104,6 +105,19 @@ class Schedule(object):
                 self.max_cooks = [cook]
             elif c == max_cookings:
                 self.max_cooks.append(cook)
+
+    def calc_max_placements(self):
+        """
+        Calculates the maximal placements on the schedule as (date, cook) tuples.
+        A placement is maximal if it is a cook which is max and a date which is max and is present in the schedule.
+        """
+        self.calc_max_dates()
+        self.calc_max_cooks()
+        self.max_placements = [
+            (date, cook)
+            for date in self.max_dates for cook in self.max_cooks
+            if cook in self.schedule[date]
+        ]
 
     def remove_placement(placement_to_remove):
         """
@@ -245,6 +259,7 @@ def main():
     print(schedule.max_cooks)
     print(schedule.max_dates)
     print(schedule.schedule)
+    print(schedule.max_placements)
 
 def evolve():
     """
