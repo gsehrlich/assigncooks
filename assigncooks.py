@@ -49,6 +49,27 @@ class Schedule(object):
                    ]
             for date in cls.dates
         }
+        return Schedule(cls.dates, cls.cooks, cls.balance, cls.maximal_schedule)
+
+    def __init__(self, dates, cooks, balances, schedule):
+        """
+        Create a schedule based on the supplied arguments.
+        All arguments are required.
+        Calls `calc_init` to make sure all relevant instance variables are set.
+        """
+        self.dates = dates
+        self.cooks = cooks
+        self.cooking_balance = balances
+        self.schedule = schedule
+        self.calc_init()
+
+    def calc_init(self):
+        """
+        Call methods which calculate various instance variables.
+        This makes it easier to "renormalize" the state of the given Schedule, making sure all fields agree.
+        """
+        self.calc_max_cooks()
+        self.calc_max_dates()
 
     @classmethod
     def load_cooking_balance(cls):
@@ -120,7 +141,7 @@ class Schedule(object):
         self.max_dates = []
         max_peeps = 0
         for date in self.dates:
-            cur_peeps = len(self.current_assignment[date])
+            cur_peeps = len(self.schedule[date])
             if cur_peeps > max_peeps:
                 self.max_dates = [date]
                 max_peeps = cur_peeps
@@ -138,7 +159,7 @@ class Schedule(object):
         for cook in self.cooks:
             c = 0
             for date in self.dates:
-                if cook in self.current_assignment[date]:
+                if cook in self.schedule[date]:
                     c += 1
             if c > max_cookings:
                 max_cookings = c
@@ -226,26 +247,6 @@ class Schedule(object):
         """
         raise NotImplementedError()
 
-    def __init__(self, base_schedule=None, changes=()):
-        """
-        Create a schedule based on `base_schedule` with changes given
-        by `changes`. If `base_schedule` is not given, cooks are
-        randomly removed from the maximal schedule to create the
-        schedule.
-        """
-        if self.cooking_balance is None:
-            self.load_cooking_balance()
-        if self.maximal_schedule is None:
-            self.create_maximal_schedule()
-
-        if base_schedule is None:
-            self.create_schedule()
-        else:
-            self.schedule = base_schedule.schedule
-            for change in changes:
-                # make the changes
-                raise NotImplementedError()
-
     def switch_filled(self, n):
         """
         Return a Schedule in which `n` cooks have been rotated in those
@@ -301,6 +302,11 @@ def main():
     else:
         usage()
     schedule = Schedule.load_month(date)
+    schedule.calc_max_dates()
+    schedule.calc_max_cooks()
+    print(schedule.max_cooks)
+    print(schedule.max_dates)
+    print(schedule.schedule)
 
 def evolve():
     """
