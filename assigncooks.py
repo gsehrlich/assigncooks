@@ -177,6 +177,17 @@ class Schedule(object):
             for cook in self.schedule[date]
             ]
 
+    def remove_maximal_placement(self):
+        """
+        Heuristic which tries to remove a "maximal" placement in terms of cooks which have too many cookings and dates with too many cooks.
+        """
+        if self.max_placements is None or self.max_placements == []:
+            self.calc_max_placements
+        if self.max_placements == []:
+            return self.random_removable_placement()
+        self.remove_placement(random.choice(self.max_placements))
+        return True
+
     def get_score(self):
         """
         Count how many times more times each cook appears on the
