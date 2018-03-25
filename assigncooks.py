@@ -10,10 +10,17 @@ def grabcsv(fname):
         print("File doesn't exist: " + fname)
         exit(1)
 
+    lines = []
     with open(fname, 'r') as f:
         csv_reader = csv.reader(f)
-        for row in csv_reader:
-            print(row)
+        lines = [[entry.strip() for entry in line] for line in csv_reader]
+
+    headers = { header : pos + 1 for pos , header in enumerate(lines[0][1:]) }
+    dict_data = {
+        line[0] : { header : line[headers[header]] for header in headers }
+        for line in lines[1:]
+    }
+    return dict_data
 
 class Schedule(object):
     balance = { '04f' : 0 , '310' : 0 , '3e0' : 0 , '4a2' : 0 , '721' : -1 , '889' : -1 , '94e' : -2 , '9e8' : -1 , 'e24' : -2 , 'ec7' : -1 , 'f3c' : 0 }
@@ -28,8 +35,8 @@ class Schedule(object):
         """
         balance_file = "data/" + date + "_balance.csv"
         poll_file    = "data/" + date + "_poll.csv"
-        grabcsv(balance_file)
-        grabcsv(poll_file)
+        print(grabcsv(balance_file))
+        print(grabcsv(poll_file))
 
     @classmethod
     def load_cooking_balance(cls):
