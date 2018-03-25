@@ -1,0 +1,12 @@
+name , balance , credits , job
+04f  , 0       , 1       , full half
+310  , 0       , 0       , full
+3e0  , 0       , 0       , standard
+4a2  , 0       , 0       , standard
+721  , -1      , 0       , full
+889  , -1      , 0       , half
+94e  , -2      , 0       , full half
+9e8  , -1      , 0       , half
+e24  , -2      , 0       , full
+ec7  , -1      , 0       , standard
+f3c  , 0       , 0       , full half
