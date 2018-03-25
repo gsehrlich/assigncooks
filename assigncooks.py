@@ -36,12 +36,19 @@ class Schedule(object):
         balance_file = "data/" + date + "_balance.csv"
         poll_file    = "data/" + date + "_poll.csv"
         raw_balances = grabcsv(balance_file)
-        raw_polls    = grabcsv(poll_file)
+        raw_poll     = grabcsv(poll_file)
 
         cls.cooks = list(raw_balances)
-        cls.dates = list(raw_polls[list(raw_polls)[0]])
+        cls.dates = list(raw_poll[list(raw_poll)[0]])
 
         cls.balance = { cook : int(raw_balances[cook]['balance']) for cook in cls.cooks }
+
+        cls.maximal_schedule = {
+            date : [cook for cook in cls.cooks
+                         if cook in raw_poll and raw_poll[cook][date] == 'OK'
+                   ]
+            for date in cls.dates
+        }
 
     @classmethod
     def load_cooking_balance(cls):
