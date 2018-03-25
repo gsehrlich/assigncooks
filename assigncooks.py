@@ -23,10 +23,10 @@ def grabcsv(fname):
     return dict_data
 
 class Schedule(object):
-    balance = { '04f' : 0 , '310' : 0 , '3e0' : 0 , '4a2' : 0 , '721' : -1 , '889' : -1 , '94e' : -2 , '9e8' : -1 , 'e24' : -2 , 'ec7' : -1 , 'f3c' : 0 }
+    cooks            = None
+    dates            = None
+    balance          = None
     maximal_schedule = None
-    cooks = [ '04f' , '310' , '3e0' , '4a2' , '721' , '889' , '94e' , '9e8' , 'e24' , 'ec7' , 'f3c' ]
-    dates = [ i for i in range(1,22) ]
 
     @classmethod
     def load_month(cls, date):
@@ -35,8 +35,13 @@ class Schedule(object):
         """
         balance_file = "data/" + date + "_balance.csv"
         poll_file    = "data/" + date + "_poll.csv"
-        print(grabcsv(balance_file))
-        print(grabcsv(poll_file))
+        raw_balances = grabcsv(balance_file)
+        raw_polls    = grabcsv(poll_file)
+
+        cls.cooks = list(raw_balances)
+        cls.dates = list(raw_polls[list(raw_polls)[0]])
+
+        cls.balance = { cook : int(raw_balances[cook]['balance']) for cook in cls.cooks }
 
     @classmethod
     def load_cooking_balance(cls):
