@@ -71,68 +71,6 @@ class Schedule(object):
         self.calc_max_cooks()
         self.calc_max_dates()
 
-    @classmethod
-    def load_cooking_balance(cls):
-        """
-        Get cooks' cooking balances from a file or online and store
-        them.
-        """
-        # TODO: IMPLEMENT CORRECTLY
-        cls.load_sample_cooking_balance()
-
-    # TEMPORARY
-    @classmethod
-    def load_sample_cooking_balance(cls):
-        """
-        Get cooks' cooking balances from a made-up file and store them.
-        Also store the list of cooks.
-        """
-        cls.cooks, balance = np.loadtxt("sample_balance.txt", delimiter="\t",
-                                    dtype=str, unpack=True)
-        cls.balance = {cls.cooks[i]: float(balance[i])
-                        for i in xrange(len(cls.cooks))}
-
-    @classmethod
-    def create_maximal_schedule(cls):
-        """
-        Get cooks' availabilities from a file or online. Store a
-        schedule specifying which cooks are available on each day.
-        """
-        # TODO: IMPLEMENT CORRECTLY
-        cls.create_sample_cooking_balalnce()
-
-    @classmethod
-    def create_sample_cooking_balance(cls):
-        """
-        Get cooks' availabilities from a made-up file. Store a schedule
-        specifying which cooks are available on each day. Also store the
-        list of dates.
-        """
-        filename = "sample_availability.txt"
-
-        # Use the first line to get the calendar
-        with open(filename) as f:
-            dates = f.readline().strip("\n#").split("\t")
-            cls.dates = dates[1:]    # Get rid of the cook column
-
-        availability_arr = np.loadtxt(filename, delimiter="\t", dtype=str)
-        availability_dict = {availability_arr[0, i]: availability_arr[1:, i]
-                                for i in xrange(len(availability_arr))}
-
-        # TODO: figure out what to do if a cook isn't in the poll. This
-        # defaults to giving them no availability.
-
-        # TODO: figure out what to do if a cook's name is spelled dif-
-        # ferently on the poll than on the balance sheet. Currently this
-        # will throw a KeyError if the cook's balance-sheet name isn't
-        # on the poll.
-
-        cls.maximal_schedule = {
-            date: [cook for cook in cls.cooks
-                    if date in availability_dict[cook]]
-            for date in cls.dates
-            }
-
     def calc_max_dates(self):
         """
         Will calculate the dates which have the maximum number of cooks assigned to them.
